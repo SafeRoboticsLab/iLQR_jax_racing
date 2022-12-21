@@ -1,21 +1,22 @@
-# SHARP: Shielding-Aware Robust Planning
+# Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation
 <!-- Implementation of SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction -->
 
 [![License][license-shield]][license-url]
-[![Homepage][homepage-shield]][homepage-url]
+[![Python 3.8](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/)
+[![Colab Notebook][homepage-shield]][homepage-url]
 
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/SafeRoboticsLab/SHARP">
-    <img src="Misc/SHARP.gif" alt="Logo" >
+  <a href="https://github.com/SafeRoboticsLab/iLQR_jax_racing_dev">
+    <img src="experiments/ilqr_jax/rollout.gif" alt="Logo" width="600">
   </a>
 
-  <h3 align="center">SHARP</h3>
+  <!-- <h3 align="center">ILQR JAX Racing</h3> -->
 
   <p align="center">
-    SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction
+    <!-- SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction -->
     <!--
     <br />
     <a href="https://github.com/SafeRoboticsLab/SHARP"><strong>Explore the docs »</strong></a>
@@ -193,5 +194,5 @@ Available on arXiv: [https://arxiv.org/abs/2202.07720](https://arxiv.org/abs/220
 [license-url]: https://opensource.org/licenses/BSD-3-Clause
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/SafeRoboticsLab
-[homepage-shield]: https://img.shields.io/badge/-Homepage-brightgreen
-[homepage-url]: https://haiminhu.org/research/sharp
+[homepage-shield]: https://img.shields.io/badge/-Colab%20Notebook-orange
+[homepage-url]: https://colab.research.google.com/drive/1_3HgZx7LTBw69xH61Us70xI8HISUeFA7?usp=sharing
