@@ -1,5 +1,4 @@
 # Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation
-<!-- Implementation of SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction -->
 
 [![License][license-shield]][license-url]
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/)
@@ -12,25 +11,11 @@
   <a href="https://github.com/SafeRoboticsLab/iLQR_jax_racing_dev">
     <img src="experiments/ilqr_jax/rollout.gif" alt="Logo" width="600">
   </a>
-
   <!-- <h3 align="center">ILQR JAX Racing</h3> -->
-
   <p align="center">
-    <!-- SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction -->
-    <!--
-    <br />
-    <a href="https://github.com/SafeRoboticsLab/SHARP"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/SafeRoboticsLab/SHARP">View Demo</a>
-    ·
-    <a href="https://github.com/SafeRoboticsLab/SHARP/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/SafeRoboticsLab/SHARP/issues">Request Feature</a>
-    -->
+    <!-- Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation -->
   </p>
 </p>
-
 
 
 <!-- TABLE OF CONTENTS -->
@@ -43,22 +28,17 @@
     <li><a href="#dataset">Dataset</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#paper">Paper</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
 
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-SHARP: Shielding-Aware Robust Planning is a general framework for safe and efficient human-robot interaction. We provide a MATLAB implementation of SHARP for autonomous driving applications, which can be found [here](https://github.com/SafeRoboticsLab/SHARP/tree/main/MATLAB).
-
-The Python implementation is being actively developed. Stay tuned!
-
-Click to watch our spotlight video:
-[![Watch the video](https://haiminhu.files.wordpress.com/2021/10/sharp_video_cover.png)](https://haiminhu.files.wordpress.com/2022/02/sharp_video.mp4)
+This repository implements a safe autonomous racing example using iLQR and rollout-based shielding, which relies on [JAX](https://github.com/google/jax) for real-time computation performance based on automatic differentiation and just-in-time compilation.
+The repo is primarily developed and maintained by [Haimin Hu](https://haiminhu.org/), a PhD student in the [Safe Robotics Lab](https://saferobotics.princeton.edu).
+[Zixu Zhang](https://zzx9636.github.io/), [Kai-Chieh Hsu](https://kaichiehhsu.github.io/) and [Duy Nguyen](https://ece.princeton.edu/people/duy-phuong-nguyen) also contributed much to the repo (their original repo is [here](https://github.com/SafeRoboticsLab/PrincetonRaceCar_planning)).
 
 
 ## Dependencies
@@ -127,50 +107,10 @@ Contributions are what make the open source community such an amazing place to l
 Distributed under the BSD 3-Clause License. See `LICENSE` for more information.
 
 
-
 <!-- CONTACT -->
 ## Contact
 
 Haimin Hu - [@HaiminHu](https://twitter.com/HaiminHu) - haiminh@princeton.edu
-
-Project Link: [https://github.com/SafeRoboticsLab/SHARP](https://github.com/SafeRoboticsLab/SHARP)
-
-Homepage Link: [https://haiminhu.org/research/sharp](https://haiminhu.org/research/sharp)
-
-
-<!-- PAPER -->
-## Paper
-
-IEEE Xplore: [https://ieeexplore.ieee.org/document/9723544](https://ieeexplore.ieee.org/document/9723544)
-
-arXiv: [https://arxiv.org/abs/2110.00843](https://arxiv.org/abs/2110.00843)
-
-```tex
-@article{hu2022sharp,
-  author={Hu, Haimin and Nakamura, Kensuke and Fisac, Jaime F.},
-  journal={IEEE Robotics and Automation Letters}, 
-  title={SHARP: Shielding-Aware Robust Planning for Safe and Efficient Human-Robot Interaction}, 
-  year={2022},
-  volume={7},
-  number={2},
-  pages={5591-5598},
-  doi={10.1109/LRA.2022.3155229}
-}
-```
-
-Our follow-up paper:
-
-Available on arXiv: [https://arxiv.org/abs/2202.07720](https://arxiv.org/abs/2202.07720)
-
-```tex
-@incollection{hu2022active,
-  title={Active Uncertainty Reduction for Human-Robot Interaction: An Implicit Dual Control Approach},
-  author={Hu, Haimin and Fisac, Jaime F.},
-  booktitle={Algorithmic Foundations of Robotics XV},
-  year={2022},
-  publisher={Springer}
-}
-```
 
 
 <!-- ACKNOWLEDGEMENTS -->
