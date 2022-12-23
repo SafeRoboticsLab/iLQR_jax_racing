@@ -55,6 +55,11 @@ This repo depends on the following packages:
 ## Example
 Please refer to the [Colab Notebook](https://colab.research.google.com/drive/1_3HgZx7LTBw69xH61Us70xI8HISUeFA7?usp=sharing) for a demo usage of this repo.
 
+Alternatively, you can directly run the main script:
+```shell
+    python3 example_racecar.py
+```
+
 
 <!-- LICENSE -->
 ## License
