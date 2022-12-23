@@ -25,7 +25,6 @@
     <li><a href="#about-the-project">About The Project</a></li>
     <li><a href="#dependencies">Dependencies</a></li>
     <li><a href="#example">Example</a></li>
-    <li><a href="#dataset">Dataset</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
@@ -43,16 +42,15 @@ The repo is primarily developed and maintained by [Haimin Hu](https://haiminhu.o
 
 ## Dependencies
 
-#### Trajectory Optimization
-* [`MPT3`](https://www.mpt3.org/) (Toolbox for MPC and parametric optimization)
-* [`MOSEK`](https://www.mosek.com/) (Quadratic programming solver. Alternatively, you may consider MATLAB's default `quadprog`)
+This repo depends on the following packages:
+1. jax=0.3.17
+2. jaxlib=0.3.15
+3. matplotlib=3.5.1
+4. numpy=1.21.5
+5. pyspline=1.5.1
+6. python=3.8.13
+7. yaml=0.2.5
 
-#### Shielding
-* [`Level Set Toolbox`](https://www.cs.ubc.ca/~mitchell/ToolboxLS/) (Toolbox for solving HJ PDE)
-* [`helperOC`](https://github.com/HJReachability/helperOC) (Toolbox for HJ-based shielding)
-
-#### Visualization
-* [`Robotics Toolbox for MATLAB`](https://petercorke.com/toolboxes/robotics-toolbox/) (Tools for plotting the vehicles)
 
 ## Example
 In this repository, we provide an example of SHARP applied for human-robot interactive driving scenarios.
@@ -67,9 +65,6 @@ In this repository, we provide an example of SHARP applied for human-robot inter
 4. **Merge** [`helperOC`](https://github.com/HJReachability/helperOC) with [ours](https://github.com/SafeRoboticsLab/SHARP/tree/main/MATLAB/ThirdParty/helperOC), which contains the customized dynamics and shielding policy.
 5. In MATLAB, run [`main.m`](https://github.com/SafeRoboticsLab/SHARP/blob/main/MATLAB/main.m) to reproduce our results.
 6. (Optional) You may change the problem specifications and planner parameters in [here](https://github.com/SafeRoboticsLab/SHARP/blob/main/MATLAB/util/initializePlanner.m).
-
-## Dataset
-We use the human driver's trajectories from the [Waymo Open Motion Dataset](https://waymo.com/open/data/motion/). In particular, we filtered out 50 representative highway overtaking scenarios from the [original dataset](https://waymo.com/open/data/motion/). Raw data with filtered trajectories in `npy` format can be found [here](https://github.com/SafeRoboticsLab/SHARP/tree/main/MATLAB/data/waymo_motion_dataset/filtered_raw_data). Trajectories converted into MATLAB's `cell` format can be found [here](https://github.com/SafeRoboticsLab/SHARP/tree/main/MATLAB/data).
 
 
 <!-- USAGE EXAMPLES 
