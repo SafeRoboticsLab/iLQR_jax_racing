@@ -38,7 +38,7 @@ def main(config_file):
   static_obs1 = EllipsoidObj(q=obs_q1, Q=obs_Q1)
   static_obs_list.append([static_obs1 for _ in range(config.N)])
 
-  obs_q2 = np.array([-2.05, 4.0])[:, np.newaxis]
+  obs_q2 = np.array([-2.1, 4.0])[:, np.newaxis]
   obs_Q2 = np.diag([obs_b**2, obs_a**2])
   static_obs2 = EllipsoidObj(q=obs_q2, Q=obs_Q2)
   static_obs_list.append([static_obs2 for _ in range(config.N)])
