@@ -53,47 +53,7 @@ This repo depends on the following packages:
 
 
 ## Example
-In this repository, we provide an example of SHARP applied for human-robot interactive driving scenarios.
-
-**Quickstart**
-1. Clone the repo
-   ```sh
-   git clone https://github.com/SafeRoboticsLab/SHARP.git
-   ```
-2. Install all dependencies.
-3. Under the root directory of [`Robotics Toolbox for MATLAB`](https://petercorke.com/toolboxes/robotics-toolbox/), **replace** `plot_vehicle.m` with [ours](https://github.com/SafeRoboticsLab/SHARP/blob/main/MATLAB/ThirdParty/Robotics%20Toolbox%20for%20MATLAB/plot_vehicle.m).
-4. **Merge** [`helperOC`](https://github.com/HJReachability/helperOC) with [ours](https://github.com/SafeRoboticsLab/SHARP/tree/main/MATLAB/ThirdParty/helperOC), which contains the customized dynamics and shielding policy.
-5. In MATLAB, run [`main.m`](https://github.com/SafeRoboticsLab/SHARP/blob/main/MATLAB/main.m) to reproduce our results.
-6. (Optional) You may change the problem specifications and planner parameters in [here](https://github.com/SafeRoboticsLab/SHARP/blob/main/MATLAB/util/initializePlanner.m).
-
-
-<!-- USAGE EXAMPLES 
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
--->
-
-
-<!-- ROADMAP 
-## Roadmap
-
-See the [open issues](https://github.com/SafeRoboticsLab/SHARP/issues) for a list of proposed features (and known issues).
--->
-
-
-<!-- CONTRIBUTING 
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
--->
+Please refer to the [Colab Notebook](https://colab.research.google.com/drive/1_3HgZx7LTBw69xH61Us70xI8HISUeFA7?usp=sharing) for a demo usage of this repo.
 
 
 <!-- LICENSE -->
@@ -111,8 +71,10 @@ Haimin Hu - [@HaiminHu](https://twitter.com/HaiminHu) - haiminh@princeton.edu
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
 
-* This research is supported by the [Princeton Project X](https://aspire-report.princeton.edu/engineering/project-x-fund) Program.
-* We use the human driver's trajectories from the [Waymo Open Motion Dataset](https://waymo.com/open/data/motion/).
+This repo is inspired by the following projects:
+* [Princeton Race Car](https://github.com/SafeRoboticsLab/PrincetonRaceCar_planning)
+* [Ellipsoidal Toolbox (ET)](https://www.mathworks.com/matlabcentral/fileexchange/21936-ellipsoidal-toolbox-et)
+* ellReach: Ellipsoidal Reachable Set Computation for Linear Time-Varying Systems (under development)
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
