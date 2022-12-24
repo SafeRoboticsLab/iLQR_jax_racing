@@ -54,8 +54,8 @@ def main(config_file):
 
   # max_deacc = config.A_MIN / 3  # config.A_MIN, config.A_MIN / 2, config.A_MIN / 3
   # shielding = NaiveSwerving(
-  #     config, [static_obs1, static_obs2, static_obs3], solver_sh.dynamics,
-  #     max_deacc=max_deacc, N_sh=30
+  #     config, [static_obs1, static_obs2, static_obs3], solver.dynamics,
+  #     max_deacc=max_deacc, N_sh=15
   # )
 
   shielding = ILQshielding(

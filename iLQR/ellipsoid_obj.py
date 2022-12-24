@@ -39,7 +39,7 @@ class EllipsoidObj():
 
     # Assume 2d ellipsoid。
     if r is None:
-      print("use eigval")
+      # print("use eigval")
       eigVal, eigVec = np.linalg.eig(Q)
       eigVal = np.sqrt(eigVal)
       if eigVal[0] > eigVal[1]:
