@@ -57,7 +57,7 @@ Please refer to the [Colab Notebook](https://colab.research.google.com/drive/1_3
 
 Alternatively, you can directly run the main script:
 ```shell
-    python3 example_racecar.py
+python3 example_racecar.py
 ```
 
 
