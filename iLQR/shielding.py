@@ -7,7 +7,7 @@ Author:  Haimin Hu (haiminh@princeton.edu)
 
 import numpy as np
 
-from jaxlib.xla_extension import DeviceArray
+from jaxlib.xla_extension import ArrayImpl
 
 
 class Shielding(object):
@@ -28,12 +28,12 @@ class Shielding(object):
     self.N_sh = N_sh
     self.sh_flag = False
 
-  def is_collision(self, states: DeviceArray) -> bool:
+  def is_collision(self, states: ArrayImpl) -> bool:
     """
     Checks collision with the static obstacles.
 
     Args:
-        states (DeviceArray): state trajectory of the ego agent.
+        states (ArrayImpl): state trajectory of the ego agent.
 
     Returns:
         bool: True if there is a collision.
@@ -80,13 +80,13 @@ class NaiveSwerving(Shielding):
     self.dynamics = dynamics
     super(NaiveSwerving, self).__init__(obs_list, config, N_sh)
 
-  def run(self, x: DeviceArray, u_nominal: DeviceArray) -> np.ndarray:
+  def run(self, x: ArrayImpl, u_nominal: ArrayImpl) -> np.ndarray:
     """
     Runs the naive swerving shielding.
 
     Args:
-        x (DeviceArray): current state.
-        u_nominal (DeviceArray): nominal control.
+        x (ArrayImpl): current state.
+        u_nominal (ArrayImpl): nominal control.
 
     Returns:
         np.ndarray: shielded control.
@@ -169,13 +169,13 @@ class ILQshielding(Shielding):
     self.controls_init = np.zeros((2, config.N))
     super(ILQshielding, self).__init__(obs_list, config, N_sh)
 
-  def run(self, x: DeviceArray, u_nominal: DeviceArray) -> np.ndarray:
+  def run(self, x: ArrayImpl, u_nominal: ArrayImpl) -> np.ndarray:
     """
     Runs the iLQR-based shielding.
 
     Args:
-        x (DeviceArray): current state.
-        u_nominal (DeviceArray): nominal control.
+        x (ArrayImpl): current state.
+        u_nominal (ArrayImpl): nominal control.
 
     Returns:
         np.ndarray: shielded control.
@@ -186,9 +186,7 @@ class ILQshielding(Shielding):
 
     # Computes iLQR shielding policies starting with x.
     states_sh, controls_sh, _, _, _, _, _, _ = (
-        self.solver.solve(
-            x, controls=self.controls_init, obs_list=self.obs_list_timed
-        )
+        self.solver.solve(x, controls=self.controls_init, obs_list=self.obs_list_timed)
     )
     self.states = states_sh
 
@@ -199,10 +197,7 @@ class ILQshielding(Shielding):
     else:
       # Computes iLQR shielding policies starting with x_next_nom.
       states, _, _, _, _, _, _, _ = (
-          self.solver.solve(
-              x_next_nom, controls=self.controls_init,
-              obs_list=self.obs_list_timed
-          )
+          self.solver.solve(x_next_nom, controls=self.controls_init, obs_list=self.obs_list_timed)
       )
       if self.is_collision(states):
         self.sh_flag = True

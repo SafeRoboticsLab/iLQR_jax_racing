@@ -13,7 +13,7 @@ from .constraints import Constraints
 
 from functools import partial
 from jax import jit, jacfwd, hessian
-from jaxlib.xla_extension import DeviceArray
+from jaxlib.xla_extension import ArrayImpl
 import jax.numpy as jnp
 import jax
 
@@ -139,8 +139,8 @@ class Cost:
     self.soft_constraints.update_obs(frs_list)
 
   def get_cost(
-      self, states: np.ndarray, controls: np.ndarray, closest_pts: np.ndarray,
-      slope: np.ndarray, theta: np.ndarray
+      self, states: np.ndarray, controls: np.ndarray, closest_pts: np.ndarray, slope: np.ndarray,
+      theta: np.ndarray
   ) -> np.ndarray:
     """
     Calculates the cost given planned states and controls.
@@ -157,9 +157,8 @@ class Cost:
     Returns:
         np.ndarray: total cost.
     """
-    transform = np.array([[
-        np.sin(slope), -np.cos(slope), self.zeros, self.zeros
-    ], [self.zeros, self.zeros, self.ones, self.zeros]])
+    transform = np.array([[np.sin(slope), -np.cos(slope), self.zeros, self.zeros],
+                          [self.zeros, self.zeros, self.ones, self.zeros]])
 
     ref_states = np.zeros_like(states)
     ref_states[0, :] = closest_pts[0, :] + np.sin(slope) * self.track_offset
@@ -168,27 +167,18 @@ class Cost:
 
     error = states - ref_states
     Q_trans = np.einsum(
-        'abn, bcn->acn',
-        np.einsum(
-            'dan, ab -> dbn', transform.transpose(1, 0, 2), self.W_state
-        ), transform
+        'abn, bcn->acn', np.einsum('dan, ab -> dbn', transform.transpose(1, 0, 2), self.W_state),
+        transform
     )
 
-    c_state = np.einsum(
-        'an, an->n', error, np.einsum('abn, bn->an', Q_trans, error)
-    )
+    c_state = np.einsum('an, an->n', error, np.einsum('abn, bn->an', Q_trans, error))
     c_progress = -self.w_theta * np.sum(theta)
 
-    c_control = np.einsum(
-        'an, an->n', controls,
-        np.einsum('ab, bn->an', self.W_control, controls)
-    )
+    c_control = np.einsum('an, an->n', controls, np.einsum('ab, bn->an', self.W_control, controls))
 
     c_control[-1] = 0
 
-    c_constraint = self.soft_constraints.get_cost(
-        states, controls, closest_pts, slope
-    )
+    c_constraint = self.soft_constraints.get_cost(states, controls, closest_pts, slope)
 
     if not self.safety:
       c_constraint = 0
@@ -198,25 +188,24 @@ class Cost:
     return J
 
   def get_derivatives_jax(
-      self, states: DeviceArray, controls: DeviceArray,
-      closest_pts: DeviceArray, slopes: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray, DeviceArray, DeviceArray, DeviceArray]:
+      self, states: ArrayImpl, controls: ArrayImpl, closest_pts: ArrayImpl, slopes: ArrayImpl
+  ) -> Tuple[ArrayImpl, ArrayImpl, ArrayImpl, ArrayImpl, ArrayImpl]:
     """
     Calculates Jacobian and Hessian of the overall cost using Jax.
 
     Args:
-        states (DeviceArray): current states of the shape (dim_x, N).
-        controls (DeviceArray): current controls of the shape (dim_u, N).
-        closest_pts (DeviceArray): each state's closest point [x,y]
+        states (ArrayImpl): current states of the shape (dim_x, N).
+        controls (ArrayImpl): current controls of the shape (dim_u, N).
+        closest_pts (ArrayImpl): each state's closest point [x,y]
             on the track (2, N).
-        slopes (DeviceArray): track's slopes (rad) at closest points (1, N).
+        slopes (ArrayImpl): track's slopes (rad) at closest points (1, N).
 
     Returns:
-        DeviceArray: c_x of the shape (dim_x, N).
-        DeviceArray: c_xx of the shape (dim_x, dim_x, N).
-        DeviceArray: c_u of the shape (dim_u, N).
-        DeviceArray: c_uu of the shape (dim_u, dim_u, N).
-        DeviceArray: c_ux of the shape (dim_u, dim_x, N).
+        ArrayImpl: c_x of the shape (dim_x, N).
+        ArrayImpl: c_xx of the shape (dim_x, dim_x, N).
+        ArrayImpl: c_u of the shape (dim_u, N).
+        ArrayImpl: c_uu of the shape (dim_u, dim_u, N).
+        ArrayImpl: c_ux of the shape (dim_u, dim_x, N).
     """
     # Obtains racing cost gradients and Hessians
     c_x_cost = self.cx_x(states, closest_pts, slopes)
@@ -236,9 +225,7 @@ class Cost:
     # Obtains soft constraint cost gradients and Hessians.
     # Analytical.
     if self.safety:
-      c_x_obs, c_xx_obs = self.soft_constraints.get_obs_derivatives(
-          np.asarray(states)
-      )
+      c_x_obs, c_xx_obs = self.soft_constraints.get_obs_derivatives(np.asarray(states))
 
     c_x_rb = self.rb_x(states, closest_pts, slopes)
     c_xx_rb = self.rb_xx(states, closest_pts, slopes)
@@ -268,18 +255,18 @@ class Cost:
   # --------------------------- Jitted racing costs ----------------------------
   @partial(jit, static_argnums=(0,))
   def state_cost_stage_jitted(
-      self, state: DeviceArray, closest_pt: DeviceArray, slope: DeviceArray
-  ) -> DeviceArray:
+      self, state: ArrayImpl, closest_pt: ArrayImpl, slope: ArrayImpl
+  ) -> ArrayImpl:
     """
     Computes the stage state cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
-        closest_pt (DeviceArray): (2,)
-        slope (DeviceArray): scalar
+        state (ArrayImpl): (dim_x,)
+        closest_pt (ArrayImpl): (2,)
+        slope (ArrayImpl): scalar
 
     Returns:
-        DeviceArray: cost (scalar)
+        ArrayImpl: cost (scalar)
     """
     sr = jnp.sin(slope)[0]
     cr = jnp.cos(slope)[0]
@@ -292,28 +279,28 @@ class Cost:
     return (state - ref_state).T @ Q @ (state-ref_state)
 
   @partial(jit, static_argnums=(0,))
-  def control_cost_stage_jitted(self, control: DeviceArray) -> DeviceArray:
+  def control_cost_stage_jitted(self, control: ArrayImpl) -> ArrayImpl:
     """
     Computes the stage control cost c(u) = u.T @ R @ u, where u is the control.
 
     Args:
-        control (DeviceArray): (dim_u,)
+        control (ArrayImpl): (dim_u,)
 
     Returns:
-        DeviceArray: cost (scalar)
+        ArrayImpl: cost (scalar)
     """
     return control.T @ self.W_control @ control
 
   @partial(jit, static_argnums=(0,))
-  def progress_deriv_jitted(self, slope: DeviceArray) -> DeviceArray:
+  def progress_deriv_jitted(self, slope: ArrayImpl) -> ArrayImpl:
     """
     Computes the derivative of the progress cost w.r.t. the slope.
 
     Args:
-        slope (DeviceArray): scalar
+        slope (ArrayImpl): scalar
 
     Returns:
-        DeviceArray: (dim_x,)
+        ArrayImpl: (dim_x,)
     """
     sr = jnp.sin(slope)[0]
     cr = jnp.cos(slope)[0]
@@ -321,18 +308,16 @@ class Cost:
 
   # ----------------------- Jitted soft constraint costs -----------------------
   @partial(jit, static_argnums=(0,))
-  def lat_acc_cost_stage_jitted(
-      self, state: DeviceArray, control: DeviceArray
-  ) -> DeviceArray:
+  def lat_acc_cost_stage_jitted(self, state: ArrayImpl, control: ArrayImpl) -> ArrayImpl:
     '''
     Calculates the lateral acceleration soft constraint cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
-        control (DeviceArray): (dim_u,)
+        state (ArrayImpl): (dim_x,)
+        control (ArrayImpl): (dim_u,)
 
     Returns:
-        DeviceArray: dtype=float32
+        ArrayImpl: dtype=float32
     '''
     accel = state[2]**2 * jnp.tan(control[1]) / self.wheelbase
     error_ub = accel - self.alat_max
@@ -344,18 +329,18 @@ class Cost:
 
   @partial(jit, static_argnums=(0,))
   def road_boundary_cost_stage_jitted(
-      self, state: DeviceArray, closest_pt: DeviceArray, slope: DeviceArray
-  ) -> DeviceArray:
+      self, state: ArrayImpl, closest_pt: ArrayImpl, slope: ArrayImpl
+  ) -> ArrayImpl:
     """
     Calculates the road boundary soft constraint cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
-        closest_pt (DeviceArray): (2,)
-        slope (DeviceArray): (1,)
+        state (ArrayImpl): (dim_x,)
+        closest_pt (ArrayImpl): (2,)
+        slope (ArrayImpl): (1,)
 
     Returns:
-        DeviceArray: dtype=float32
+        ArrayImpl: dtype=float32
     """
     sr = jnp.sin(slope)
     cr = jnp.cos(slope)
@@ -368,58 +353,48 @@ class Cost:
 
     # Right bound.
     b_r = dis - (self.track_width_R - self.r)
-    c_r = (
-        self.q1_road
-        * jnp.exp(jnp.clip(self.q2_road * b_r, _min_val, _max_val))
-    )
+    c_r = (self.q1_road * jnp.exp(jnp.clip(self.q2_road * b_r, _min_val, _max_val)))
 
     # Left bound.
     b_l = -dis - (self.track_width_L - self.r)
-    c_l = (
-        self.q1_road
-        * jnp.exp(jnp.clip(self.q2_road * b_l, _min_val, _max_val))
-    )
+    c_l = (self.q1_road * jnp.exp(jnp.clip(self.q2_road * b_l, _min_val, _max_val)))
     return c_l + c_r
 
   @partial(jit, static_argnums=(0,))
-  def vel_bound_cost_stage_jitted(self, state: DeviceArray) -> DeviceArray:
+  def vel_bound_cost_stage_jitted(self, state: ArrayImpl) -> ArrayImpl:
     """
     Calculates the velocity bound soft constraint cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
+        state (ArrayImpl): (dim_x,)
 
     Returns:
-        DeviceArray: dtype=float32
+        ArrayImpl: dtype=float32
     """
     cons_v_min = self.v_min - state[2]
     cons_v_max = state[2] - self.v_max
-    barrier_v_min = self.q1_v * jnp.exp(
-        jnp.clip(self.q2_v * cons_v_min, None, self.barrier_thr)
-    )
-    barrier_v_max = self.q1_v * jnp.exp(
-        jnp.clip(self.q2_v * cons_v_max, None, self.barrier_thr)
-    )
+    barrier_v_min = self.q1_v * jnp.exp(jnp.clip(self.q2_v * cons_v_min, None, self.barrier_thr))
+    barrier_v_max = self.q1_v * jnp.exp(jnp.clip(self.q2_v * cons_v_max, None, self.barrier_thr))
     return barrier_v_min + barrier_v_max
 
   # ----------- Jitted analytical derivatives (for comparison only) ------------
   @partial(jit, static_argnums=(0,))
   def lat_acc_deriv_jitted(
-      self, state: DeviceArray, control: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray, DeviceArray, DeviceArray, DeviceArray]:
+      self, state: ArrayImpl, control: ArrayImpl
+  ) -> Tuple[ArrayImpl, ArrayImpl, ArrayImpl, ArrayImpl, ArrayImpl]:
     """
     Calculates the Jacobian and Hessian of lateral acc. soft constraint cost.
 
     Args:
-        state (DeviceArray): of the shape (dim_x,).
-        control (DeviceArray): of the shape (dim_u,).
+        state (ArrayImpl): of the shape (dim_x,).
+        control (ArrayImpl): of the shape (dim_u,).
 
     Returns:
-        DeviceArray: c_x of the shape (dim_x,).
-        DeviceArray: c_xx of the shape (dim_x, dim_x).
-        DeviceArray: c_u of the shape (dim_u,).
-        DeviceArray: c_uu of the shape (dim_u, dim_u).
-        DeviceArray: c_ux of the shape (dim_u, dim_x).
+        ArrayImpl: c_x of the shape (dim_x,).
+        ArrayImpl: c_xx of the shape (dim_x, dim_x).
+        ArrayImpl: c_u of the shape (dim_u,).
+        ArrayImpl: c_uu of the shape (dim_u, dim_u).
+        ArrayImpl: c_ux of the shape (dim_u, dim_x).
     """
     dim_x = self.dim_x
     wheelbase = self.wheelbase
@@ -437,21 +412,14 @@ class Cost:
     error_ub = accel - self.alat_max
     error_lb = self.alat_min - accel
 
-    cost_a_lat_min = q1_lat * jnp.exp(
-        jnp.clip(q2_lat * error_lb, None, barrier_thr)
-    )
-    cost_a_lat_max = q1_lat * jnp.exp(
-        jnp.clip(q2_lat * error_ub, None, barrier_thr)
-    )
+    cost_a_lat_min = q1_lat * jnp.exp(jnp.clip(q2_lat * error_lb, None, barrier_thr))
+    cost_a_lat_max = q1_lat * jnp.exp(jnp.clip(q2_lat * error_ub, None, barrier_thr))
 
     da_dx = 2 * state[2] * jnp.tan(control[1]) / wheelbase
     da_dxx = 2 * jnp.tan(control[1]) / wheelbase
 
     da_du = state[2]**2 / (jnp.cos(control[1])**2 * wheelbase)
-    da_duu = (
-        state[2]**2 * jnp.sin(control[1]) /
-        (jnp.cos(control[1])**3 * wheelbase)
-    )
+    da_duu = (state[2]**2 * jnp.sin(control[1]) / (jnp.cos(control[1])**3 * wheelbase))
 
     da_dux = 2 * state[2] / (jnp.cos(control[1])**2 * wheelbase)
 
@@ -474,20 +442,19 @@ class Cost:
     return c_x, c_xx, c_u, c_uu, c_ux
 
   @partial(jit, static_argnums=(0,))
-  def road_boundary_deriv_jitted(
-      self, state: DeviceArray, closest_pt: DeviceArray, slope: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray]:
+  def road_boundary_deriv_jitted(self, state: ArrayImpl, closest_pt: ArrayImpl,
+                                 slope: ArrayImpl) -> Tuple[ArrayImpl, ArrayImpl]:
     """
     Calculates the Jacobian and Hessian of road boundary soft constraint cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
-        closest_pt (DeviceArray): (2,)
-        slope (DeviceArray): (1,)
+        state (ArrayImpl): (dim_x,)
+        closest_pt (ArrayImpl): (2,)
+        slope (ArrayImpl): (1,)
 
     Returns:
-        DeviceArray: (dim_x,)
-        DeviceArray: (dim_x, dim_x)
+        ArrayImpl: (dim_x,)
+        ArrayImpl: (dim_x, dim_x)
     """
     dim_x = self.dim_x
     sr = jnp.sin(slope)
@@ -501,8 +468,8 @@ class Cost:
     c_x_r = jnp.zeros((dim_x,))
     c_xx_r = jnp.zeros((dim_x, dim_x))
     _c_x_r, _c_xx_r = barrier_function_jitted(
-        q1=self.q1_road, q2=self.q2_road, cons=cons_road_r, cons_dot=transform,
-        cons_min=None, cons_max=self.barrier_thr
+        q1=self.q1_road, q2=self.q2_road, cons=cons_road_r, cons_dot=transform, cons_min=None,
+        cons_max=self.barrier_thr
     )
     c_x_r = c_x_r.at[:2].set(jnp.ravel(_c_x_r))
     c_xx_r = c_xx_r.at[:2, :2].set(_c_xx_r)
@@ -511,8 +478,8 @@ class Cost:
     c_x_l = jnp.zeros((dim_x,))
     c_xx_l = jnp.zeros((dim_x, dim_x))
     _c_x_l, _c_xx_l = barrier_function_jitted(
-        q1=self.q1_road, q2=self.q2_road, cons=cons_road_l,
-        cons_dot=-transform, cons_min=None, cons_max=self.barrier_thr
+        q1=self.q1_road, q2=self.q2_road, cons=cons_road_l, cons_dot=-transform, cons_min=None,
+        cons_max=self.barrier_thr
     )
     c_x_l = c_x_l.at[:2].set(jnp.ravel(_c_x_l))
     c_xx_l = c_xx_l.at[:2, :2].set(_c_xx_l)
@@ -520,18 +487,16 @@ class Cost:
     return c_x_r + c_x_l, c_xx_r + c_xx_l
 
   @partial(jit, static_argnums=(0,))
-  def vel_bound_deriv_jitted(
-      self, state: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray]:
+  def vel_bound_deriv_jitted(self, state: ArrayImpl) -> Tuple[ArrayImpl, ArrayImpl]:
     """
     Calculates the Jacobian and Hessian of velocity soft constraint cost.
 
     Args:
-        state (DeviceArray): (dim_x,)
+        state (ArrayImpl): (dim_x,)
 
     Returns:
-        DeviceArray: (dim_x,)
-        DeviceArray: (dim_x, dim_x)
+        ArrayImpl: (dim_x,)
+        ArrayImpl: (dim_x, dim_x)
     """
     dim_x = self.dim_x
     transform = 1.
@@ -555,23 +520,23 @@ class Cost:
 
 @jit
 def barrier_function_jitted(
-    q1: DeviceArray, q2: DeviceArray, cons: DeviceArray, cons_dot: DeviceArray,
-    cons_min: DeviceArray = None, cons_max: DeviceArray = None
-) -> Tuple[DeviceArray, DeviceArray]:
+    q1: ArrayImpl, q2: ArrayImpl, cons: ArrayImpl, cons_dot: ArrayImpl, cons_min: ArrayImpl = None,
+    cons_max: ArrayImpl = None
+) -> Tuple[ArrayImpl, ArrayImpl]:
   """
   Computes the barrier function with clipping.
 
   Args:
-      q1 (DeviceArray): scalar
-      q2 (DeviceArray): scalar
-      cons (DeviceArray): scalar
-      cons_dot (DeviceArray): N-by-1
-      cons_min (DeviceArray): scalar
-      cons_max (DeviceArray): scalar
+      q1 (ArrayImpl): scalar
+      q2 (ArrayImpl): scalar
+      cons (ArrayImpl): scalar
+      cons_dot (ArrayImpl): N-by-1
+      cons_min (ArrayImpl): scalar
+      cons_max (ArrayImpl): scalar
 
   Returns:
-      DeviceArray: N-by-1
-      DeviceArray: N-by-N
+      ArrayImpl: N-by-1
+      ArrayImpl: N-by-N
   """
   tmp = jnp.clip(q2 * cons, cons_min, cons_max)
   b = q1 * (jnp.exp(tmp))

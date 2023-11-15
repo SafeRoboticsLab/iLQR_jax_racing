@@ -13,7 +13,7 @@ import numpy as np
 
 from functools import partial
 from jax import jit, jacfwd
-from jaxlib.xla_extension import DeviceArray
+from jaxlib.xla_extension import ArrayImpl
 import jax.numpy as jnp
 import jax
 
@@ -77,20 +77,16 @@ class Dynamics:
 
     for _ in range(step):
       # State: [x, y, v, psi]
-      d_x = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2)
-             * np.cos(next_state[3]))
-      d_y = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2)
-             * np.sin(next_state[3]))
+      d_x = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2) * np.cos(next_state[3]))
+      d_y = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2) * np.sin(next_state[3]))
       d_v = accel * dt_step
-      d_psi = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2)
-               * np.tan(delta) / self.wheelbase)
+      d_psi = ((next_state[2] * dt_step + 0.5 * accel * dt_step**2) * np.tan(delta)
+               / self.wheelbase)
       next_state = next_state + np.array([d_x, d_y, d_v, d_psi])
       if noise is not None:
-        T = np.array([[np.cos(next_state[-1]),
-                       np.sin(next_state[-1]), 0, 0],
+        T = np.array([[np.cos(next_state[-1]), np.sin(next_state[-1]), 0, 0],
                       [-np.sin(next_state[-1]),
-                       np.cos(next_state[-1]), 0, 0], [0, 0, 1, 0],
-                      [0, 0, 0, 1]])
+                       np.cos(next_state[-1]), 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         if noise_type == 'unif':
           rv = np.random.rand(4) - 0.5
         else:
@@ -104,42 +100,37 @@ class Dynamics:
 
   # ---------------------------- Jitted functions ------------------------------
   @partial(jit, static_argnums=(0,))
-  def dct_time_dyn(
-      self, state: DeviceArray, control: DeviceArray
-  ) -> DeviceArray:
+  def dct_time_dyn(self, state: ArrayImpl, control: ArrayImpl) -> ArrayImpl:
     """
     Computes the one-step time evolution of the system.
 
     Args:
-        state (DeviceArray): (4,) jnp array [x, y, v, psi].
-        control (DeviceArray): (2,) jnp array [a, delta].
+        state (ArrayImpl): (4,) jnp array [x, y, v, psi].
+        control (ArrayImpl): (2,) jnp array [a, delta].
 
     Returns:
-        DeviceArray: next state.
+        ArrayImpl: next state.
     """
-    d_x = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2)
-           * jnp.cos(state[3]))
-    d_y = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2)
-           * jnp.sin(state[3]))
+    d_x = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2) * jnp.cos(state[3]))
+    d_y = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2) * jnp.sin(state[3]))
     d_v = control[0] * self.dt
-    d_psi = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2)
-             * jnp.tan(control[1]) / self.wheelbase)
+    d_psi = ((state[2] * self.dt + 0.5 * control[0] * self.dt**2) * jnp.tan(control[1])
+             / self.wheelbase)
     return state + jnp.hstack((d_x, d_y, d_v, d_psi))
 
   @partial(jit, static_argnums=(0,))
-  def integrate_forward_jax(
-      self, state: DeviceArray, control: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray]:
+  def integrate_forward_jax(self, state: ArrayImpl,
+                            control: ArrayImpl) -> Tuple[ArrayImpl, ArrayImpl]:
     """
     Computes the next state.
 
     Args:
-        state (DeviceArray): (4,) jnp array [x, y, v, psi].
-        control (DeviceArray): (2,) jnp array [a, delta].
+        state (ArrayImpl): (4,) jnp array [x, y, v, psi].
+        control (ArrayImpl): (2,) jnp array [a, delta].
 
     Returns:
-        state_next: DeviceArray
-        control_next: DeviceArray
+        state_next: ArrayImpl
+        control_next: ArrayImpl
     """
     # Clips the control values with their limits.
     accel = jnp.clip(control[0], self.a_min, self.a_max)
@@ -152,20 +143,19 @@ class Dynamics:
     return state_next, control_clip
 
   @partial(jit, static_argnums=(0,))
-  def get_AB_matrix_jax(
-      self, nominal_states: DeviceArray, nominal_controls: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray]:
+  def get_AB_matrix_jax(self, nominal_states: ArrayImpl,
+                        nominal_controls: ArrayImpl) -> Tuple[ArrayImpl, ArrayImpl]:
     """
       Returns the linearized 'A' and 'B' matrix of the ego vehicle around
       nominal states and controls.
 
       Args:
-          nominal_states (DeviceArray): (nx, N) states along the nominal traj.
-          nominal_controls (DeviceArray): (nu, N) controls along the traj.
+          nominal_states (ArrayImpl): (nx, N) states along the nominal traj.
+          nominal_controls (ArrayImpl): (nu, N) controls along the traj.
 
       Returns:
-          DeviceArray: the Jacobian of next state w.r.t. the current state.
-          DeviceArray: the Jacobian of next state w.r.t. the current control.
+          ArrayImpl: the Jacobian of next state w.r.t. the current state.
+          ArrayImpl: the Jacobian of next state w.r.t. the current control.
       """
     A, B = self.jac_f(nominal_states, nominal_controls)
     return A, B

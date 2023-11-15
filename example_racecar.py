@@ -2,18 +2,17 @@
 Please contact the author(s) of this library if you have any questions.
 Author: Haimin Hu (haiminh@princeton.edu)
 Reference: ECE346@Princeton (Zixu Zhang, Kai-Chieh Hsu, Duy P. Nguyen)
-Checklist for slow JAX computation:
-  - Mixing DeviceArray with numpy array.
 """
 
-import os
+import os, jax, argparse
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import cm
 from IPython.display import Image
-import imageio
-import argparse
+import imageio.v2 as imageio
 
+jax.config.update('jax_platform_name', 'cpu')
+jax.config.update('jax_enable_x64', True)
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 
@@ -38,7 +37,7 @@ def main(config_file):
   static_obs1 = EllipsoidObj(q=obs_q1, Q=obs_Q1)
   static_obs_list.append([static_obs1 for _ in range(config.N)])
 
-  obs_q2 = np.array([-2.1, 4.0])[:, np.newaxis]
+  obs_q2 = np.array([-2.15, 4.0])[:, np.newaxis]
   obs_Q2 = np.diag([obs_b**2, obs_a**2])
   static_obs2 = EllipsoidObj(q=obs_q2, Q=obs_Q2)
   static_obs_list.append([static_obs2 for _ in range(config.N)])
@@ -59,8 +58,7 @@ def main(config_file):
   # )
 
   shielding = ILQshielding(
-      config, solver_sh, [static_obs1, static_obs2, static_obs3],
-      static_obs_list, N_sh=15
+      config, solver_sh, [static_obs1, static_obs2, static_obs3], static_obs_list, N_sh=15
   )
 
   pos0, psi0 = track.interp([2])  # Position and yaw on the track.
@@ -83,9 +81,7 @@ def main(config_file):
   os.makedirs(fig_prog_folder, exist_ok=True)
 
   # Define disturbances.
-  sigma = np.array([
-      config.SIGMA_X, config.SIGMA_Y, config.SIGMA_V, config.SIGMA_THETA
-  ])
+  sigma = np.array([config.SIGMA_X, config.SIGMA_Y, config.SIGMA_V, config.SIGMA_THETA])
 
   # iLQR Planning.
   for i in range(itr_receding):
@@ -98,14 +94,8 @@ def main(config_file):
     control_sh = shielding.run(x=x_cur, u_nominal=controls[:, 0])
 
     # Executes the control.
-    x_cur = solver.dynamics.forward_step(
-        x_cur, control_sh, step=1, noise=sigma
-    )[0]
-    print(
-        "[{}]: solver returns status {} and uses {:.3f}.".format(
-            i, status, t_process
-        ), end='\r'
-    )
+    x_cur = solver.dynamics.forward_step(x_cur, control_sh, step=1, noise=sigma)[0]
+    print("[{}]: solver returns status {} and uses {:.3f}.".format(i, status, t_process), end='\r')
     if i > 0:  # Excludes JAX compilation time at the first time step.
       t_total += t_process
 
@@ -127,31 +117,28 @@ def main(config_file):
     track.plot_track()
     for static_obs in static_obs_list:
       plot_ellipsoids(
-          plt.gca(), static_obs[0:1], arg_list=[dict(c='k', linewidth=1.)],
-          dims=[0, 1], N=50, plot_center=False, use_alpha=False
+          plt.gca(), static_obs[0:1], arg_list=[dict(c='k', linewidth=1.)], dims=[0, 1], N=50,
+          plot_center=False, use_alpha=False
       )
       if plot_cover:  # plot circles that cover the footprint.
         static_obs[0].plot_circ(plt.gca())
         solver.cost.soft_constraints.ego_ell[0].plot_circ(plt.gca())
     if shielding.sh_flag:
       plot_ellipsoids(
-          plt.gca(), [solver.cost.soft_constraints.ego_ell[0]],
-          arg_list=[dict(c='r')], dims=[0, 1], N=50, plot_center=False
+          plt.gca(), [solver.cost.soft_constraints.ego_ell[0]], arg_list=[dict(c='r')], dims=[0, 1],
+          N=50, plot_center=False
       )
     else:
       plot_ellipsoids(
-          plt.gca(), [solver.cost.soft_constraints.ego_ell[0]],
-          arg_list=[dict(c='b')], dims=[0, 1], N=50, plot_center=False
+          plt.gca(), [solver.cost.soft_constraints.ego_ell[0]], arg_list=[dict(c='b')], dims=[0, 1],
+          N=50, plot_center=False
       )
     plt.plot(states[0, :], states[1, :], linewidth=2, c='b')
     if shielding.sh_flag:
-      plt.plot(
-          shielding.states[0, :], shielding.states[1, :], linewidth=2, c='r'
-      )
+      plt.plot(shielding.states[0, :], shielding.states[1, :], linewidth=2, c='r')
     sc = plt.scatter(
-        state_hist[0, :i + 1], state_hist[1, :i + 1], s=24,
-        c=state_hist[2, :i + 1], cmap=cm.jet, vmin=0, vmax=config.V_MAX,
-        edgecolor='none', marker='o'
+        state_hist[0, :i + 1], state_hist[1, :i + 1], s=24, c=state_hist[2, :i + 1], cmap=cm.jet,
+        vmin=0, vmax=config.V_MAX, edgecolor='none', marker='o'
     )
     cbar = plt.colorbar(sc)
     cbar.set_label(r"velocity [$m/s$]", size=20)
@@ -163,7 +150,7 @@ def main(config_file):
 
   # Makes an animation.
   gif_path = os.path.join(config.OUT_FOLDER, 'rollout.gif')
-  with imageio.get_writer(gif_path, mode='I') as writer:
+  with imageio.get_writer(gif_path, mode='I', loop=0) as writer:
     for i in range(itr_receding):
       filename = os.path.join(fig_prog_folder, str(i) + ".png")
       image = imageio.imread(filename)

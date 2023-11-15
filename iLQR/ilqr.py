@@ -15,7 +15,7 @@ from .dynamics import Dynamics
 
 from functools import partial
 from jax import jit, lax
-from jaxlib.xla_extension import DeviceArray
+from jaxlib.xla_extension import ArrayImpl
 import jax.numpy as jnp
 
 
@@ -44,19 +44,18 @@ class iLQR():
     self.cost = Cost(config, safety)
 
   def forward_pass(
-      self, nominal_states: DeviceArray, nominal_controls: DeviceArray,
-      Ks: DeviceArray, ks: DeviceArray, alpha: float
-  ) -> Tuple[np.ndarray, np.ndarray, float, np.ndarray, np.ndarray,
-             np.ndarray]:
+      self, nominal_states: ArrayImpl, nominal_controls: ArrayImpl, Ks: ArrayImpl, ks: ArrayImpl,
+      alpha: float
+  ) -> Tuple[np.ndarray, np.ndarray, float, np.ndarray, np.ndarray, np.ndarray]:
     """
     Forward pass wrapper.
     Calls forward_pass_jax to speed up computation.
 
     Args:
-        nominal_states (DeviceArray): (dim_x, N)
-        nominal_controls (DeviceArray): (dim_u, N)
-        Ks (DeviceArray): gain matrices (dim_u, dim_x, N - 1)
-        ks (DeviceArray): gain vectors (dim_u, N - 1)
+        nominal_states (ArrayImpl): (dim_x, N)
+        nominal_controls (ArrayImpl): (dim_u, N)
+        Ks (ArrayImpl): gain matrices (dim_u, dim_x, N - 1)
+        ks (ArrayImpl): gain vectors (dim_u, N - 1)
         alpha (float): scalar parameter
 
     Returns:
@@ -69,9 +68,7 @@ class iLQR():
             points.
         theta (np.ndarray): 1xN array of the progress at each state.
     """
-    Xs, Us = self.forward_pass_jax(
-        nominal_states, nominal_controls, Ks, ks, alpha
-    )
+    Xs, Us = self.forward_pass_jax(nominal_states, nominal_controls, Ks, ks, alpha)
     Xs = np.asarray(Xs)
     Us = np.asarray(Us)
 
@@ -80,18 +77,18 @@ class iLQR():
     return Xs, Us, J, closest_pt, slope, theta
 
   def backward_pass(
-      self, nominal_states: DeviceArray, nominal_controls: DeviceArray,
-      closest_pts: DeviceArray, slopes: DeviceArray
+      self, nominal_states: ArrayImpl, nominal_controls: ArrayImpl, closest_pts: ArrayImpl,
+      slopes: ArrayImpl
   ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Backward pass wrapper.
     Calls get_AB_matrix_jax and backward_pass_jax to speed up computation.
 
     Args:
-        nominal_states (DeviceArray): (dim_x, N)
-        nominal_controls (DeviceArray): (dim_u, N)
-        closest_pts (DeviceArray): (2, N)
-        slopes (DeviceArray): (1, N)
+        nominal_states (ArrayImpl): (dim_x, N)
+        nominal_controls (ArrayImpl): (dim_u, N)
+        closest_pts (ArrayImpl): (2, N)
+        slopes (ArrayImpl): (1, N)
 
     Returns:
         Ks (np.ndarray): gain matrices (dim_u, dim_x, N - 1)
@@ -107,10 +104,9 @@ class iLQR():
     return np.asarray(Ks), np.asarray(ks)
 
   def solve(
-      self, cur_state: np.ndarray, controls: np.ndarray = None,
-      obs_list: list = [], record: bool = False
-  ) -> Tuple[np.ndarray, np.ndarray, float, int, np.ndarray, np.ndarray,
-             np.ndarray, np.ndarray]:
+      self, cur_state: np.ndarray, controls: np.ndarray = None, obs_list: list = [],
+      record: bool = False
+  ) -> Tuple[np.ndarray, np.ndarray, float, int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Solves the iLQR problem.
 
@@ -140,9 +136,7 @@ class iLQR():
     states[:, 0] = cur_state
 
     for i in range(1, self.N):
-      states[:, i], _ = self.dynamics.forward_step(
-          states[:, i - 1], controls[:, i - 1]
-      )
+      states[:, i], _ = self.dynamics.forward_step(states[:, i - 1], controls[:, i - 1])
     closest_pt, slope, theta = self.ref_path.get_closest_pts(states[:2, :])
 
     self.cost.update_obs(obs_list)
@@ -195,22 +189,22 @@ class iLQR():
   # ----------------------------- Jitted functions -----------------------------
   @partial(jit, static_argnums=(0,))
   def forward_pass_jax(
-      self, nominal_states: DeviceArray, nominal_controls: DeviceArray,
-      Ks: DeviceArray, ks: DeviceArray, alpha: float
-  ) -> Tuple[DeviceArray, DeviceArray]:
+      self, nominal_states: ArrayImpl, nominal_controls: ArrayImpl, Ks: ArrayImpl, ks: ArrayImpl,
+      alpha: float
+  ) -> Tuple[ArrayImpl, ArrayImpl]:
     """
     Jitted forward pass looped computation.
 
     Args:
-        nominal_states (DeviceArray): (dim_x, N)
-        nominal_controls (DeviceArray): (dim_u, N)
-        Ks (DeviceArray): gain matrices (dim_u, dim_x, N - 1)
-        ks (DeviceArray): gain vectors (dim_u, N - 1)
+        nominal_states (ArrayImpl): (dim_x, N)
+        nominal_controls (ArrayImpl): (dim_u, N)
+        Ks (ArrayImpl): gain matrices (dim_u, dim_x, N - 1)
+        ks (ArrayImpl): gain vectors (dim_u, N - 1)
         alpha (float): scalar parameter
 
     Returns:
-        Xs (DeviceArray): (dim_x, N)
-        Us (DeviceArray): (dim_u, N)
+        Xs (ArrayImpl): (dim_x, N)
+        Us (ArrayImpl): (dim_u, N)
     """
 
     @jit
@@ -233,24 +227,24 @@ class iLQR():
 
   @partial(jit, static_argnums=(0,))
   def backward_pass_jax(
-      self, L_x: DeviceArray, L_xx: DeviceArray, L_u: DeviceArray,
-      L_uu: DeviceArray, L_ux: DeviceArray, fx: DeviceArray, fu: DeviceArray
-  ) -> Tuple[DeviceArray, DeviceArray]:
+      self, L_x: ArrayImpl, L_xx: ArrayImpl, L_u: ArrayImpl, L_uu: ArrayImpl, L_ux: ArrayImpl,
+      fx: ArrayImpl, fu: ArrayImpl
+  ) -> Tuple[ArrayImpl, ArrayImpl]:
     """
     Jitted backward pass looped computation.
 
     Args:
-        L_x (DeviceArray): (dim_x, N)
-        L_xx (DeviceArray): (dim_x, dim_x, N)
-        L_u (DeviceArray): (dim_u, N)
-        L_uu (DeviceArray): (dim_u, dim_u, N)
-        L_ux (DeviceArray): (dim_u, dim_x, N)
-        fx (DeviceArray): (dim_x, dim_x, N)
-        fu (DeviceArray): (dim_x, dim_u, N)
+        L_x (ArrayImpl): (dim_x, N)
+        L_xx (ArrayImpl): (dim_x, dim_x, N)
+        L_u (ArrayImpl): (dim_u, N)
+        L_uu (ArrayImpl): (dim_u, dim_u, N)
+        L_ux (ArrayImpl): (dim_u, dim_x, N)
+        fx (ArrayImpl): (dim_x, dim_x, N)
+        fu (ArrayImpl): (dim_x, dim_u, N)
 
     Returns:
-        Ks (DeviceArray): gain matrices (dim_u, dim_x, N - 1)
-        ks (DeviceArray): gain vectors (dim_u, N - 1)
+        Ks (ArrayImpl): gain matrices (dim_u, dim_x, N - 1)
+        ks (ArrayImpl): gain vectors (dim_u, N - 1)
     """
 
     @jit
@@ -282,7 +276,5 @@ class iLQR():
 
     reg_mat = self.lambad * jnp.eye(self.dim_u)
 
-    V_x, V_xx, ks, Ks = lax.fori_loop(
-        0, self.N - 1, backward_pass_looper, (V_x, V_xx, ks, Ks)
-    )
+    V_x, V_xx, ks, Ks = lax.fori_loop(0, self.N - 1, backward_pass_looper, (V_x, V_xx, ks, Ks))
     return Ks, ks

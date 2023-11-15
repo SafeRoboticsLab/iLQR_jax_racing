@@ -86,16 +86,14 @@ class Constraints:
     for i in range(self.N):
       theta = states[3, i]
       d = states[:2, i][:, np.newaxis]
-      R = np.array([[np.cos(theta), -np.sin(theta)],
-                    [np.sin(theta), np.cos(theta)]])
+      R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
       temp = self.ego @ R
       temp.add(d)
       ego_ell.append(temp)
     return ego_ell
 
   def get_cost(
-      self, states: np.ndarray, controls: np.ndarray, closest_pt: np.ndarray,
-      slope: np.ndarray
+      self, states: np.ndarray, controls: np.ndarray, closest_pt: np.ndarray, slope: np.ndarray
   ) -> np.ndarray:
     """
     Computes the total soft constraint cost.
@@ -124,9 +122,7 @@ class Constraints:
         ego_i = self.ego_ell[i]
         for obs_j in self.obs_list:  # obs_j is a list of obstacles.
           obs_j_i = obs_j[i]  # Get the ith obstacle in list obs_j.
-          c_obs[i] += self.gamma**i * ego_i.obstacle_cost(
-              obs_j_i, self.q1_obs, self.q2_obs
-          )
+          c_obs[i] += self.gamma**i * ego_i.obstacle_cost(obs_j_i, self.q1_obs, self.q2_obs)
 
     # Minimum velocity constarint.
     c_vel = self.q1_v * (np.exp(-states[2, :] * self.q2_v))
@@ -136,12 +132,8 @@ class Constraints:
     error_ub = accel - self.alat_max
     error_lb = self.alat_min - accel
 
-    b_ub = self.q1_lat * (
-        np.exp(np.clip(self.q2_lat * error_ub, None, self.exp_ub)) - 1
-    )
-    b_lb = self.q1_lat * (
-        np.exp(np.clip(self.q2_lat * error_lb, None, self.exp_ub)) - 1
-    )
+    b_ub = self.q1_lat * (np.exp(np.clip(self.q2_lat * error_ub, None, self.exp_ub)) - 1)
+    b_lb = self.q1_lat * (np.exp(np.clip(self.q2_lat * error_lb, None, self.exp_ub)) - 1)
     c_lat = b_lb + b_ub
 
     return c_vel + c_boundary + c_lat + c_obs
@@ -171,20 +163,15 @@ class Constraints:
     # Right bound.
     b_r = dis - (self.track_width_R - self.r)
 
-    c_r = self.q1_road * np.exp(
-        np.clip(self.q2_road * b_r, -0.025 * self.q2_road, 20)
-    )
+    c_r = self.q1_road * np.exp(np.clip(self.q2_road * b_r, -0.025 * self.q2_road, 20))
     # Left Bound.
     b_l = -dis - (self.track_width_L - self.r)
 
-    c_l = self.q1_road * np.exp(
-        np.clip(self.q2_road * b_l, -0.025 * self.q2_road, 20)
-    )
+    c_l = self.q1_road * np.exp(np.clip(self.q2_road * b_l, -0.025 * self.q2_road, 20))
 
     return c_l + c_r
 
-  def get_obs_derivatives(self,
-                          states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+  def get_obs_derivatives(self, states: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculates the Jacobian and Hessian of the obstacle avoidance soft
     constraint cost.
@@ -205,8 +192,7 @@ class Constraints:
         for obs_j in self.obs_list:
           obs_j_i = obs_j[i]
           c_x_obs_temp, c_xx_obs_temp = ego_i.obstacle_derivative(
-              states[:, i], self.wheelbase / 2, obs_j_i, self.q1_obs,
-              self.q2_obs
+              states[:, i], self.wheelbase / 2, obs_j_i, self.q1_obs, self.q2_obs
           )
           c_x_obs[:, i] += self.gamma**i * c_x_obs_temp
           c_xx_obs[:, :, i] += self.gamma**i * c_xx_obs_temp
