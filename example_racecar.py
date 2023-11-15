@@ -6,8 +6,9 @@ Reference: ECE346@Princeton (Zixu Zhang, Kai-Chieh Hsu, Duy P. Nguyen)
 
 import os, jax, argparse
 import numpy as np
-from matplotlib import pyplot as plt
 from matplotlib import cm
+from matplotlib import pyplot as plt
+from matplotlib.transforms import Affine2D
 from IPython.display import Image
 import imageio.v2 as imageio
 
@@ -47,6 +48,8 @@ def main(config_file):
   static_obs3 = EllipsoidObj(q=obs_q3, Q=obs_Q3)
   static_obs_list.append([static_obs3 for _ in range(config.N)])
 
+  static_obs_heading_list = [-np.pi, -np.pi / 2, -np.pi / 2]
+
   # Initialization.
   solver = iLQR(track, config, safety=False)  # Nominal racing iLQR
   solver_sh = iLQR(track, config, safety=True)  # Shielding safety backup iLQR
@@ -79,6 +82,8 @@ def main(config_file):
   # Specifies the folder to save figures.
   fig_prog_folder = os.path.join(config.OUT_FOLDER, "progress")
   os.makedirs(fig_prog_folder, exist_ok=True)
+  ego = plt.imread('misc/ego.png', format="png")
+  alter = plt.imread('misc/alter.png', format="png")
 
   # Define disturbances.
   sigma = np.array([config.SIGMA_X, config.SIGMA_Y, config.SIGMA_V, config.SIGMA_THETA])
@@ -140,6 +145,26 @@ def main(config_file):
         state_hist[0, :i + 1], state_hist[1, :i + 1], s=24, c=state_hist[2, :i + 1], cmap=cm.jet,
         vmin=0, vmax=config.V_MAX, edgecolor='none', marker='o'
     )
+    # plot ego car figure
+    transform_data = Affine2D().rotate_deg_around(*(x_cur[0], x_cur[1]),
+                                                  x_cur[3] / np.pi * 180) + plt.gca().transData
+    plt.imshow(
+        ego, transform=transform_data, interpolation='none', origin='lower',
+        extent=[x_cur[0] - 0.25, x_cur[0] + 0.25, x_cur[1] - 0.1,
+                x_cur[1] + 0.1], alpha=1.0, zorder=10.0, clip_on=True
+    )
+    # plot alter cars figure
+    for j in range(len(static_obs_list)):
+      _static_obs = static_obs_list[j][0]
+      transform_data = Affine2D().rotate_deg_around(
+          *(_static_obs.q[0, 0], _static_obs.q[1, 0]), static_obs_heading_list[j] / np.pi * 180
+      ) + plt.gca().transData
+      plt.imshow(
+          alter, transform=transform_data, interpolation='none', origin='lower', extent=[
+              _static_obs.q[0, 0] - 0.25, _static_obs.q[0, 0] + 0.25, _static_obs.q[1, 0] - 0.1,
+              _static_obs.q[1, 0] + 0.1
+          ], alpha=1.0, zorder=10.0, clip_on=True
+      )
     cbar = plt.colorbar(sc)
     cbar.set_label(r"velocity [$m/s$]", size=20)
     plt.axis('equal')
