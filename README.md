@@ -1,7 +1,7 @@
 # Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation
 
 [![License][license-shield]][license-url]
-[![Python 3.8](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
 [![Colab Notebook][homepage-shield]][homepage-url]
 
 
@@ -43,12 +43,12 @@ The repo is primarily developed and maintained by [Haimin Hu](https://haiminhu.o
 ## Dependencies
 
 This repo depends on the following packages:
-1. jax=0.3.17
-2. jaxlib=0.3.15
+1. jax=0.4.19
+2. jaxlib=0.4.16
 3. matplotlib=3.5.1
 4. numpy=1.21.5
 5. pyspline=1.5.1
-6. python=3.8.13
+6. python=3.10
 7. yaml=0.2.5
 
 
