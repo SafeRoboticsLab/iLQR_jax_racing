@@ -91,6 +91,16 @@ If you found this repository helpful, please consider citing one of the followin
 }
 ```
 
+* iLQR-based Stackelberg game solver:
+```tex
+@article{hu2024plays,
+  title={Who Plays First? Optimizing the Order of Play in Stackelberg Games with Many Robots},
+  author={Hu, Haimin and Dragotto, Gabriele and Zhang, Zixu and Liang, Kaiqu and Stellato, Bartolomeo and Fisac, Jaime F},
+  journal={arXiv preprint arXiv:2402.09246},
+  year={2024}
+}
+```
+
 * iLQ-based game solver for data-aware planning:
 ```tex
 @article{lidard2024blending,
