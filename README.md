@@ -27,6 +27,7 @@
     <li><a href="#example">Example</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
+    <li><a href="#paper">Paper</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
@@ -71,6 +72,34 @@ Distributed under the BSD 3-Clause License. See `LICENSE` for more information.
 ## Contact
 
 Haimin Hu - [@HaiminHu](https://twitter.com/HaiminHu) - haiminh@princeton.edu
+
+
+<!-- PAPER -->
+## Paper
+
+If you found this repository helpful, please consider citing one of the following papers that turned this repository into research contributions.
+
+* iLQR-based safety filter:
+```tex
+@article{hu2023active,
+  title={Active uncertainty reduction for safe and efficient interaction planning: A shielding-aware dual control approach},
+  author={Hu, Haimin and Isele, David and Bae, Sangjae and Fisac, Jaime F},
+  journal={The International Journal of Robotics Research},
+  pages={02783649231215371},
+  year={2023},
+  publisher={SAGE Publications Sage UK: London, England}
+}
+```
+
+* iLQ-based game solver for data-aware planning:
+```tex
+@article{lidard2024blending,
+  title={Blending Data-Driven Priors in Dynamic Games},
+  author={Lidard, Justin and Hu, Haimin and Hancock, Asher and Zhang, Zixu and Contreras, Albert Gim{\'o} and Modi, Vikash and DeCastro, Jonathan and Gopinath, Deepak and Rosman, Guy and Leonard, Naomi and others},
+  journal={arXiv preprint arXiv:2402.14174},
+  year={2024}
+}
+```
 
 
 <!-- ACKNOWLEDGEMENTS -->
