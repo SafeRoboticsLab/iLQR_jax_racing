@@ -1,4 +1,4 @@
-# Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation
+# Safe Autonomous Racing using ILQR and Rollout-based Shielding: A JAX Implementation
 
 [![License][license-shield]][license-url]
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue)](https://www.python.org/downloads/)
@@ -13,7 +13,7 @@
   </a>
   <!-- <h3 align="center">ILQR JAX Racing</h3> -->
   <p align="center">
-    <!-- Safe Autonomous Racing using iLQR and Rollout-based Shielding: A JAX Implementation -->
+    <!-- Safe Autonomous Racing using ILQR and Rollout-based Shielding: A JAX Implementation -->
   </p>
 </p>
 
@@ -36,7 +36,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository implements a safe autonomous racing example using iLQR and rollout-based shielding, which relies on [JAX](https://github.com/google/jax) for real-time computation performance based on automatic differentiation and just-in-time (JIT) compilation.
+This repository implements a safe autonomous racing example using ILQR and rollout-based shielding, which relies on [JAX](https://github.com/google/jax) for real-time computation performance based on automatic differentiation and just-in-time (JIT) compilation.
 The repo is primarily developed and maintained by [Haimin Hu](https://haiminhu.org/), a PhD student in the [Safe Robotics Lab](https://saferobotics.princeton.edu).
 [Zixu Zhang](https://zzx9636.github.io/), [Kai-Chieh Hsu](https://kaichiehhsu.github.io/) and [Duy Nguyen](https://ece.princeton.edu/people/duy-phuong-nguyen) also contributed much to the repo (their original repo is [here](https://github.com/SafeRoboticsLab/PrincetonRaceCar_planning)).
 
@@ -79,7 +79,7 @@ Haimin Hu - [@HaiminHu](https://twitter.com/HaiminHu) - haiminh@princeton.edu
 
 If you found this repository helpful, please consider citing one of the following papers that turned this repository into research contributions.
 
-* iLQR-based safety filter:
+* ILQR-based safety filter:
 ```tex
 @article{hu2023active,
   title={Active uncertainty reduction for safe and efficient interaction planning: A shielding-aware dual control approach},
@@ -91,7 +91,7 @@ If you found this repository helpful, please consider citing one of the followin
 }
 ```
 
-* iLQR-based Stackelberg game solver:
+* ILQR-based Stackelberg game solver:
 ```tex
 @article{hu2024plays,
   title={Who Plays First? Optimizing the Order of Play in Stackelberg Games with Many Robots},
@@ -101,7 +101,7 @@ If you found this repository helpful, please consider citing one of the followin
 }
 ```
 
-* iLQ-based game solver for data-aware planning:
+* ILQ-based game solver for data-aware planning:
 ```tex
 @article{lidard2024blending,
   title={Blending Data-Driven Priors in Dynamic Games},
