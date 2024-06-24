@@ -93,20 +93,20 @@ If you found this repository helpful, please consider citing one of the followin
 
 * ILQR-based Stackelberg game solver:
 ```tex
-@article{hu2024plays,
+@inproceedings{hu2024plays,
   title={Who Plays First? Optimizing the Order of Play in Stackelberg Games with Many Robots},
   author={Hu, Haimin and Dragotto, Gabriele and Zhang, Zixu and Liang, Kaiqu and Stellato, Bartolomeo and Fisac, Jaime F},
-  journal={arXiv preprint arXiv:2402.09246},
+  booktitle={Proceedings of Robotics: Science and Systems},
   year={2024}
 }
 ```
 
 * ILQ-based game solver for data-aware planning:
 ```tex
-@article{lidard2024blending,
+@inproceedings{lidard2024blending,
   title={Blending Data-Driven Priors in Dynamic Games},
   author={Lidard, Justin and Hu, Haimin and Hancock, Asher and Zhang, Zixu and Contreras, Albert Gim{\'o} and Modi, Vikash and DeCastro, Jonathan and Gopinath, Deepak and Rosman, Guy and Leonard, Naomi and others},
-  journal={arXiv preprint arXiv:2402.14174},
+  booktitle={Proceedings of Robotics: Science and Systems},
   year={2024}
 }
 ```
